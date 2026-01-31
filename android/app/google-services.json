@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "505396243912",
+    "firebase_url": "https://quiz-app-cac0d-default-rtdb.firebaseio.com",
+    "project_id": "quiz-app-cac0d",
+    "storage_bucket": "quiz-app-cac0d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:505396243912:android:dbfee9abe9dceaa46524fd",
+        "android_client_info": {
+          "package_name": "com.quizcomapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzn1qIdULK4kfm53jx47Jgp8mx2zEgV2I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:505396243912:android:700ea07e62f1ecb46524fd",
+        "android_client_info": {
+          "package_name": "com.ytreactnative"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzn1qIdULK4kfm53jx47Jgp8mx2zEgV2I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
