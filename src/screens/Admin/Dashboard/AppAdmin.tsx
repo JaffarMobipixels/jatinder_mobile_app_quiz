@@ -39,10 +39,16 @@ import CharadesWordsManager from '../CharadesGame/CharadesWordsManager';
 
 import AdminRulesScreen from '../AdminRulesScreen';
 
+import TeacherBookProgressScreen 
+from '../Books/TeacherBookProgressScreen';
+import AdminNotificationsScreen from './AdminNotificationsScreen';
+
 /* ========= PARAM LIST (IMPORTANT) ========= */
 export type AdminStackParamList = {
   Dashboard: undefined;
   AddTabScreen: undefined;
+   TeacherBookProgress: { ebookId: string };
+
 
   PrayerScreen: undefined;
   AddPrayerScreen: undefined;
@@ -174,6 +180,15 @@ export default function AppAdmin() {
         name="CharadesWordsManager"
         component={CharadesWordsManager}
       />
+      <Stack.Screen
+  name="TeacherBookProgress"
+  component={TeacherBookProgressScreen}
+/>
+
+<Stack.Screen
+  name="AdminNotificationsScreen"
+  component={AdminNotificationsScreen}
+/>
     </Stack.Navigator>
   );
 }

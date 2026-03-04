@@ -6,6 +6,7 @@ import PrayerScreen from '../screens/User/PrayerScreen';
 import PrayerDetailScreen from '../screens/User/PrayerDetailScreen';
 import HomeScreen from '../screens/User/HomeScreen';
 import BookReaderScreen from '../screens/User/BookReaderScreen';
+import UserTabs from './UserTabs';
 
 // ✅ Prayer type
 export type Prayer = {
@@ -35,8 +36,8 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Home" component={HomeScreen} />
-    <Stack.Screen name="Login" component={LoginScreen} />
+    
+    <Stack.Screen name="LoginScreen" component={LoginScreen} />
     <Stack.Screen name="Signup" component={SignupScreen} />
     <Stack.Screen name="BookReader" component={BookReaderScreen} />
     <Stack.Screen name="PrayerScreen" component={PrayerScreen} />

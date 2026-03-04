@@ -21,15 +21,14 @@ const CharadesResult: React.FC<CharadesResultProps> = ({ navigation, route }) =>
   };
 
   // Stack ko reset karke Home par le jane wala function
-  const goHome = () => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'CharadesHome' }],
-      })
-    );
-  };
-
+const goHome = () => {
+  navigation.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [{ name: 'CharadesHome' }],
+    })
+  );
+};
   return (
     <LinearGradient
       colors={['#0A1F44', '#1E3A8A', '#0F172A']} 

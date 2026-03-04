@@ -22,44 +22,49 @@ const ChangePasswordScreen: React.FC<any> = ({ navigation }) => {
    
     // Safe Area Insets hook
     const insets = useSafeAreaInsets();
- 
-    const handlePasswordChange = async () => {
-        if (!newPassword || !confirmPassword) {
-            Alert.alert("Error", "Please fill in all fields.");
-            return;
+ const handlePasswordChange = async () => {
+    if (!newPassword || !confirmPassword) {
+        Alert.alert("Error", "Please fill in all fields.");
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        Alert.alert("Error", "New password and confirmation do not match.");
+        return;
+    }
+
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+        Alert.alert("Error", "No user logged in.");
+        return;
+    }
+
+    try {
+        setLoading(true);
+        await updatePassword(user, newPassword);
+        Alert.alert("Success", "Your password has been changed successfully.");
+        setNewPassword('');
+        setConfirmPassword('');
+        
+        // Redirect to login screen after password change
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'LoginScreen' }],
+        });
+
+    } catch (error: any) {
+        if (error.code === 'auth/requires-recent-login') {
+            Alert.alert("Error", "Security sensitive: You need to re-login to change your password.");
+        } else if (error.code === 'auth/weak-password') {
+            Alert.alert("Error", "Password should be at least 6 characters.");
+        } else {
+            Alert.alert("Error", "Something went wrong. Try again later.");
         }
-        if (newPassword !== confirmPassword) {
-            Alert.alert("Error", "New password and confirmation do not match.");
-            return;
-        }
- 
-        const auth = getAuth();
-        const user = auth.currentUser;
- 
-        if (!user) {
-            Alert.alert("Error", "No user logged in.");
-            return;
-        }
- 
-        try {
-            setLoading(true);
-            await updatePassword(user, newPassword);
-            Alert.alert("Success", "Your password has been changed successfully.");
-            setNewPassword('');
-            setConfirmPassword('');
-            navigation.goBack();
-        } catch (error: any) {
-            if (error.code === 'auth/requires-recent-login') {
-                Alert.alert("Error", "Security sensitive: You need to re-login to change your password.");
-            } else if (error.code === 'auth/weak-password') {
-                Alert.alert("Error", "Password should be at least 6 characters.");
-            } else {
-                Alert.alert("Error", "Something went wrong. Try again later.");
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
+    } finally {
+        setLoading(false);
+    }
+};
  
     return (
         <View style={styles.mainContainer}>

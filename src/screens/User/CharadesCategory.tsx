@@ -13,6 +13,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import database from '@react-native-firebase/database';
+import { CommonActions } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -22,26 +23,24 @@ const CharadesCategory = ({ navigation }: any) => {
 
   useEffect(() => {
     const ref = database().ref('CharadesWord');
- const onValueChange = ref.on('value', snapshot => {
-  const data = snapshot.val() || {};
+    const onValueChange = ref.on('value', snapshot => {
+      const data = snapshot.val() || {};
 
-  const list = Object.keys(data)
-    .map(key => ({
-      key,
-      catname: data[key].catname,
-    }))
-    .reverse(); // 👈 new category last
+      const list = Object.keys(data)
+        .map(key => ({
+          key,
+          catname: data[key].catname,
+        }))
+        .reverse(); // new category last
 
-  setCategories(list);
-  setLoading(false);
-});
-
+      setCategories(list);
+      setLoading(false);
+    });
 
     return () => ref.off('value', onValueChange);
   }, []);
 
   const handleCategoryPress = (categoryKey: string, categoryName: string) => {
-    // Navigation to Play Screen
     navigation.navigate('CharadesPlay', {
       categoryId: categoryKey,
       categoryName,
@@ -49,7 +48,12 @@ const CharadesCategory = ({ navigation }: any) => {
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'CharadesHome' }],
+      })
+    );
   };
 
   return (
@@ -65,7 +69,7 @@ const CharadesCategory = ({ navigation }: any) => {
           <TouchableOpacity style={styles.backBtnHeader} onPress={handleBack}>
             <Icon name="arrow-left" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>GOQUIZZER</Text>
+          <Text style={styles.headerTitle}>Sikh Virsa</Text>
         </View>
 
         {/* ---------- TITLE ---------- */}
@@ -85,7 +89,7 @@ const CharadesCategory = ({ navigation }: any) => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContainer}
           >
-            {categories.map((item, index) => (
+            {categories.map((item) => (
               <TouchableOpacity
                 key={item.key}
                 style={styles.card}
@@ -96,12 +100,8 @@ const CharadesCategory = ({ navigation }: any) => {
                   colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
                   style={styles.cardInner}
                 >
-                  <View style={styles.cardContent}>
-                    <View style={styles.iconCircle}>
-                      <Text style={styles.emojiText}>🎮</Text>
-                    </View>
-                    <Text style={styles.cardText}>{item.catname}</Text>
-                  </View>
+                  {/* Only category text */}
+                  <Text style={styles.cardText}>{item.catname}</Text>
                   <Icon name="chevron-right" size={26} color="rgba(255,255,255,0.5)" />
                 </LinearGradient>
               </TouchableOpacity>
@@ -115,7 +115,6 @@ const CharadesCategory = ({ navigation }: any) => {
   );
 };
 
-// Yahan export default define kar diya hai
 export default CharadesCategory;
 
 const styles = StyleSheet.create({
@@ -186,25 +185,14 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   cardInner: {
-    height:80,
+    height: 80,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 20, // added padding for text
   },
-  cardContent: { flexDirection: 'row', marginLeft:20,alignItems: 'center' },
-  iconCircle: {
-    width: 45,
-    height: 45,
-    borderRadius: 12,
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  emojiText: { fontSize: 20  },
   cardText: {
     fontSize: 18,
     fontWeight: '700',

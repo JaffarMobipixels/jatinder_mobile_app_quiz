@@ -147,7 +147,7 @@ React.useEffect(() => {
           <Feather name="arrow-left" size={24} color="#FFF" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Sikhism Sakhis</Text>
+        <Text style={styles.headerTitle}>Sikhism</Text>
 
         <View style={{ width: 24 }} />
       </LinearGradient>

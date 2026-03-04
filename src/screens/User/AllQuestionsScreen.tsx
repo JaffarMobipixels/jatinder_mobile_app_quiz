@@ -127,20 +127,34 @@ export default function MCQGameScreen({ navigation, route }: any) {
     setIsLostPopup(false);
     progress.setValue(0);
   };
- 
-  const saveGameData = async (finalScore: number) => {
-    try {
-      const user = auth().currentUser;
-      const ref = database().ref(`Leaderboard/${Date.now()}`);
-      await ref.set({
-        score: finalScore,
-        category: categoryName,
-        user: user?.email || 'guest',
-        date: new Date().toISOString(),
-      });
-    } catch (e) { console.log(e); }
-  };
- 
+const saveGameData = async (finalScore: number) => {
+  try {
+    const user = auth().currentUser;
+    if (!user) return;
+
+    // Fetch first & last name from 'users' node
+    const userSnapshot = await database().ref(`users/${user.uid}`).once('value');
+    const userData = userSnapshot.val();
+
+    const firstName = userData?.firstName || 'Anonymous';
+    const lastName = userData?.lastName || '';
+
+    // Save game data in Leaderboard
+    const ref = database().ref(`Leaderboard/${Date.now()}`);
+    await ref.set({
+      score: finalScore,
+      category: categoryName,
+      user: user.email || 'guest',
+      firstName,
+      lastName,
+      date: new Date().toISOString(),
+    });
+
+    console.log('Game data saved successfully!');
+  } catch (e) {
+    console.log('Error saving game data:', e);
+  }
+};
   if (loading) return <View style={styles.loader}><ActivityIndicator size="large" color="#4D96FF" /></View>;
  
   const currentQ = questions[currentQuestion];

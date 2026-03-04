@@ -14,6 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
 import database from '@react-native-firebase/database';
 import auth from '@react-native-firebase/auth';
+import _ from 'lodash';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,23 +38,51 @@ const PdfViewerScreen = ({ route, navigation }: any) => {
     return () => progressRef.off('value', listener);
   }, [id, user]);
 
-  // Save progress (avoid multiple writes)
+  // Save progress function (updates both UserProgress and StudentProgressTab)
   const saveProgress = async (page: number) => {
     if (!user || saving) return;
     setSaving(true);
     try {
+      const progressPercent = Math.floor((page / pdfTotalPages) * 100);
+
+      // 1️⃣ Update UserProgress (teacher/admin tracking)
       await database().ref(`UserProgress/${user.uid}/${id}`).set({
         currentPage: page,
-        totalPages: pdfTotalPages, // use actual PDF pages
-        progressPercent: Math.floor((page / pdfTotalPages) * 100),
+        totalPages: pdfTotalPages,
+        progressPercent,
         lastRead: Date.now(),
       });
+
+      // 2️⃣ Update StudentProgressTab (student progress)
+      const studentRef = database().ref(`StudentProgressTab/${user.uid}/${id}`);
+      const snapshot = await studentRef.once('value');
+
+      if (!snapshot.exists()) {
+        await studentRef.set({
+          studentName: user.displayName || 'Student',
+          bookName: title,
+          totalPages: pdfTotalPages,
+          timeGivenCalifornia: '',
+          dateGiven: new Date().toISOString(),
+          progress: progressPercent,
+          readingInTime: false,
+          assignedBy: '',
+        });
+      } else {
+        await studentRef.update({
+          progress: progressPercent,
+          lastRead: Date.now(),
+        });
+      }
     } catch (err) {
       console.log('Save progress error:', err);
     } finally {
       setSaving(false);
     }
   };
+
+  // Debounced save to reduce writes when scrolling fast
+  const saveProgressDebounced = useRef(_.debounce(saveProgress, 500)).current;
 
   // Called when PDF scrolls
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -63,8 +92,14 @@ const PdfViewerScreen = ({ route, navigation }: any) => {
     const visiblePage = Math.min(Math.max(Math.ceil(offsetY / pageHeight), 1), pdfTotalPages);
     if (visiblePage !== currentPage) {
       setCurrentPage(visiblePage);
-      saveProgress(visiblePage);
+      saveProgressDebounced(visiblePage);
     }
+  };
+
+  // Handle page change (from Pdf component)
+  const onPageChanged = (page: number) => {
+    setCurrentPage(page);
+    saveProgressDebounced(page);
   };
 
   return (
@@ -76,7 +111,7 @@ const PdfViewerScreen = ({ route, navigation }: any) => {
         end={{ x: 1, y: 0 }}
         style={styles.header}
       >
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ ...styles.backBtn, marginLeft: 10 }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Feather name="arrow-left" size={26} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{title}</Text>
@@ -95,10 +130,7 @@ const PdfViewerScreen = ({ route, navigation }: any) => {
             setPdfHeight(height);
             setPdfTotalPages(numberOfPages); // update with actual pages
           }}
-          onPageChanged={(page) => {
-            setCurrentPage(page);
-            saveProgress(page);
-          }}
+          onPageChanged={onPageChanged}
           onScroll={onScroll}
           horizontal={false}
         />

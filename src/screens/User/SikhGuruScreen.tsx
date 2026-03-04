@@ -32,27 +32,49 @@ type RouteType = {
 /* ===================== TABBAR TYPE FIX ===================== */
 const TypedTabBar = TabBar as unknown as React.ComponentType<any>;
 
-/* ===================== GURU SCENE ===================== */
+/* ===================== GURU SCENE WITH IMAGE LOADER ===================== */
 const GuruScene =
   (guru: GuruType) =>
-  () => (
-    <LinearGradient
-      colors={['#0A1F44', '#1E3A8A', '#0F172A']}
-      style={styles.scene}
-    >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {guru.imageUrl ? (
-          <Image source={{ uri: guru.imageUrl }} style={styles.guruImage} />
-        ) : null}
+  () => {
+    const [imageLoading, setImageLoading] = useState(true);
 
-        <Text style={styles.guruTitle}>{guru.title}</Text>
+    return (
+      <LinearGradient
+        colors={['#0A1F44', '#1E3A8A', '#0F172A']}
+        style={styles.scene}
+      >
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {guru.imageUrl ? (
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <Image
+                source={{ uri: guru.imageUrl }}
+                style={styles.guruImage}
+                onLoadStart={() => setImageLoading(true)}
+                onLoadEnd={() => setImageLoading(false)}
+              />
+              {imageLoading && (
+                <ActivityIndicator
+                  size="large"
+                  color="#FFD700"
+                  style={{
+                    position: 'absolute',
+                    top: '45%',
+                    left: '45%',
+                  }}
+                />
+              )}
+            </View>
+          ) : null}
 
-        <View style={styles.card}>
-          <Text style={styles.historyText}>{guru.history}</Text>
-        </View>
-      </ScrollView>
-    </LinearGradient>
-  );
+          <Text style={styles.guruTitle}>{guru.title}</Text>
+
+          <View style={styles.card}>
+            <Text style={styles.historyText}>{guru.history}</Text>
+          </View>
+        </ScrollView>
+      </LinearGradient>
+    );
+  };
 
 /* ===================== MAIN SCREEN ===================== */
 export default function SikhGuruScreen({ navigation }: any) {
@@ -184,7 +206,7 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 24,
     alignItems: 'flex-start',
-    marginLeft:10,
+    marginLeft: 10,
   },
 
   headerTitle: {
@@ -215,7 +237,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 220,
     resizeMode: 'contain',
-    marginBottom: 20,
     borderRadius: 12,
   },
 
@@ -230,8 +251,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 16,
-    marginRight:30,
-    
+    marginRight: 30,
   },
 
   historyText: {

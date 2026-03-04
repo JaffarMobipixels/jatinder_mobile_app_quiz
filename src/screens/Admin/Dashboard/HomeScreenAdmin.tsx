@@ -32,8 +32,9 @@ interface TabItem {
 const HomeScreenAdmin = ({ navigation }: any) => {
   const [tabs, setTabs] = useState<TabItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0); // For red dot
 
-  /* ================= FIREBASE ================= */
+  /* ================= FIREBASE: TABS ================= */
   useEffect(() => {
     const ref = database().ref('/adminTabs').orderByChild('order');
 
@@ -64,6 +65,25 @@ const HomeScreenAdmin = ({ navigation }: any) => {
     return () => ref.off('value', onValueChange);
   }, []);
 
+  /* ================= FIREBASE: NOTIFICATIONS RED DOT ================= */
+  useEffect(() => {
+    const notifRef = database().ref('/adminNotifications');
+
+    const onNotifChange = notifRef.on('value', snapshot => {
+      let count = 0;
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        Object.keys(data).forEach(key => {
+          // Show red dot for pending notifications
+          if (data[key].status === 'pending') count += 1;
+        });
+      }
+      setUnreadCount(count);
+    });
+
+    return () => notifRef.off('value', onNotifChange);
+  }, []);
+
   /* ================= DELETE TAB ================= */
   const deleteTab = (id: string) => {
     Alert.alert(
@@ -78,7 +98,7 @@ const HomeScreenAdmin = ({ navigation }: any) => {
             try {
               await database().ref(`/adminTabs/${id}`).remove();
             } catch (e) {
-              Alert.alert('Error', '');
+              Alert.alert('Error', 'Tab delete nahi ho saka');
             }
           },
         },
@@ -87,30 +107,25 @@ const HomeScreenAdmin = ({ navigation }: any) => {
   };
 
   /* ================= LOGOUT ================= */
-/* ================= LOGOUT ================= */
-/* ================= LOGOUT ================= */
-const handleLogout = () => {
-  Alert.alert(
-    'Logout',
-    'Are you sure you want to logout?',
-    [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Yes',
-        style: 'destructive',
-        onPress: () => {
-          // Navigate to Login screen and reset the stack
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'LoginScreen' }],
-          });
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'LoginScreen' }],
+            });
+          },
         },
-      },
-    ],
-  );
-};
-
-
+      ],
+    );
+  };
 
   /* ================= TAB CARD ================= */
   const TabCard = ({ item }: { item: TabItem }) => (
@@ -155,13 +170,24 @@ const handleLogout = () => {
             <FeatherIcon name="log-out" size={26} color="#fff" />
           </TouchableOpacity>
 
+          {/* TITLE */}
           <Text style={styles.toolbarTitle}>Admin Dashboard</Text>
 
+          {/* ADD TAB ICON */}
           <TouchableOpacity
             style={styles.addIcon}
             onPress={() => navigation.navigate('AddTabScreen')}
           >
             <FeatherIcon name="plus-circle" size={28} color="#fff" />
+          </TouchableOpacity>
+
+          {/* NOTIFICATIONS ICON */}
+          <TouchableOpacity
+            style={styles.notificationIcon}
+            onPress={() => navigation.navigate('AdminNotificationsScreen')}
+          >
+            <FeatherIcon name="bell" size={28} color="#fff" />
+            {unreadCount > 0 && <View style={styles.redDot} />}
           </TouchableOpacity>
         </View>
 
@@ -210,6 +236,7 @@ const styles = StyleSheet.create({
   toolbarTitle: {
     color: '#fff',
     fontSize: 22,
+    right: 10,
     fontWeight: '900',
   },
 
@@ -221,8 +248,26 @@ const styles = StyleSheet.create({
 
   addIcon: {
     position: 'absolute',
-    right: 20,
+    right: 15,
     bottom: 18,
+  },
+
+  notificationIcon: {
+    position: 'absolute',
+    right: 55,
+    bottom: 18,
+  },
+
+  redDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: 'red',
+    borderWidth: 1,
+    borderColor: '#fff',
   },
 
   container: {

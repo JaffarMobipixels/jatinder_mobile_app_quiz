@@ -14,7 +14,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { TabView, TabBar } from 'react-native-tab-view';
 import database from '@react-native-firebase/database';
 import storage from '@react-native-firebase/storage';
-import DocumentPicker from 'react-native-document-picker';
 
 /* ================= FIELD COMPONENT ================= */
 const Field = ({ label, value, onChangeText, multiline = false, placeholder }: any) => (
@@ -136,27 +135,27 @@ const AddPrayerTabsScreen = ({ navigation }: any) => {
     );
   };
 
-  // AUDIO PICK & UPLOAD
-  const pickAudioAndUpload = async () => {
-    try {
-      const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.audio],
-      });
+  // // AUDIO PICK & UPLOAD
+  // const pickAudioAndUpload = async () => {
+  //   try {
+  //     const res = await DocumentPicker.pickSingle({
+  //       type: [DocumentPicker.types.audio],
+  //     });
 
-      const fileUri = res.uri;
-      const fileName = res.name;
-      const reference = storage().ref(`audios/${Date.now()}_${fileName}`);
+  //     const fileUri = res.uri;
+  //     const fileName = res.name;
+  //     const reference = storage().ref(`audios/${Date.now()}_${fileName}`);
 
-      await reference.putFile(fileUri);
-      const downloadUrl = await reference.getDownloadURL();
+  //     await reference.putFile(fileUri);
+  //     const downloadUrl = await reference.getDownloadURL();
 
-      setAudioUrl(downloadUrl);
-      Alert.alert('Success', 'Audio uploaded successfully!');
-    } catch (err: any) {
-      if (DocumentPicker.isCancel(err)) return;
-      Alert.alert('Error', err.message || 'Failed to pick audio');
-    }
-  };
+  //     setAudioUrl(downloadUrl);
+  //     Alert.alert('Success', 'Audio uploaded successfully!');
+  //   } catch (err: any) {
+  //     if (DocumentPicker.isCancel(err)) return;
+  //     Alert.alert('Error', err.message || 'Failed to pick audio');
+  //   }
+  // };
 
   const saveAudio = async () => {
     if (!audioTitle || !audioUrl) {
@@ -272,14 +271,7 @@ const AddPrayerTabsScreen = ({ navigation }: any) => {
       <Text style={styles.sectionTitle}>Add Audio</Text>
       <Field label="Audio Title" value={audioTitle} onChangeText={setAudioTitle} />
 
-      <TouchableOpacity
-        style={[styles.input, { justifyContent: 'center', padding: 12 }]}
-        onPress={pickAudioAndUpload}
-      >
-        <Text style={{ color: audioUrl ? '#fff' : '#64748b' }}>
-          {audioUrl ? 'Audio Selected' : 'Pick Audio from Phone'}
-        </Text>
-      </TouchableOpacity>
+     
 
       <TouchableOpacity style={styles.btn} onPress={saveAudio}>
         <Text style={styles.btnText}>{editingAudio ? 'Update Audio' : 'Save Audio'}</Text>

@@ -1,3 +1,4 @@
+// UserProfileScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { 
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, BackHandler, ActivityIndicator 
@@ -34,39 +35,63 @@ const UserProfileScreen: React.FC<any> = ({ navigation }) => {
 
     setEmail(currentUser.email || '');
     const userRef = database().ref(`users/${currentUser.uid}`);
+    const leaderboardRef = database().ref('Leaderboard');
 
-    userRef.once('value').then(async snapshot => {
-      if (!isMounted) return;
+    const fetchUserData = async () => {
+      try {
+        // 1️⃣ Fetch user profile
+        const snapshot = await userRef.once('value');
+        if (!isMounted) return;
 
-      const data = snapshot.val();
-      if (data) {
-        setFirstName(data.firstName || '');
-        setLastName(data.lastName || '');
-        setProfileImage(data.profileImage || dummyImageUrl);
-        setTotalScore(data.score ?? 0);
-
-        if (!data.profileImage) {
-          await userRef.update({ profileImage: dummyImageUrl });
+        const data = snapshot.val();
+        if (data) {
+          setFirstName(data.firstName ?? '');
+          setLastName(data.lastName ?? '');
+          setProfileImage(data.profileImage ?? dummyImageUrl);
+        } else {
+          // Initialize user if not present
+          await userRef.set({
+            firstName: '',
+            lastName: '',
+            email: currentUser.email ?? '',
+            profileImage: dummyImageUrl,
+          });
+          setProfileImage(dummyImageUrl);
         }
-      } else {
-        await userRef.set({
-          firstName: '',
-          lastName: '',
-          email: currentUser.email || '',
-          profileImage: dummyImageUrl,
-          score: 0,
-        });
-        setProfileImage(dummyImageUrl);
-      }
 
-      setLoading(false);
-    });
+        // 2️⃣ Calculate total score using the same logic as LeaderboardScreen
+        const leaderboardSnap = await leaderboardRef.once('value');
+        const leaderboardObj = leaderboardSnap.val();
+        const usersMap: { [key: string]: number } = {};
+
+        if (leaderboardObj) {
+          for (const entry of Object.values(leaderboardObj)) {
+            const e: any = entry;
+            const key = e.user || e.uid; // Use email first, fallback to UID
+            if (!key) continue;
+
+            const score = Number(e.score || 0);
+            if (!usersMap[key]) usersMap[key] = score;
+            else usersMap[key] += score;
+          }
+        }
+
+        const userKey = currentUser.email || currentUser.uid;
+        setTotalScore(usersMap[userKey] ?? 0);
+
+        setLoading(false);
+      } catch (err) {
+        console.log('Error fetching user data:', err);
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
 
     const backAction = () => {
       navigation.goBack();
       return true;
     };
-
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
     return () => {
@@ -86,6 +111,7 @@ const UserProfileScreen: React.FC<any> = ({ navigation }) => {
       try {
         setUploading(true);
         setImageLoading(true);
+
         const reference = storage().ref(`profile_images/${currentUser.uid}`);
         await reference.putFile(image.uri!);
         const url = await reference.getDownloadURL();
@@ -141,10 +167,13 @@ const UserProfileScreen: React.FC<any> = ({ navigation }) => {
   if (loading) {
     return (
       <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: '#fff', fontSize: 18 }}>Loading...</Text>
+        <ActivityIndicator size="large" color="#4D96FF" />
+        <Text style={{ color: '#fff', fontSize: 18, marginTop: 10 }}>Loading...</Text>
       </SafeAreaView>
     );
   }
+
+  const isRemoteImage = profileImage && profileImage !== dummyImageUrl;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -160,26 +189,27 @@ const UserProfileScreen: React.FC<any> = ({ navigation }) => {
 
         {/* Profile Image Card */}
         <View style={styles.profileCard}>
-          <TouchableOpacity onPress={handleImageUpload} disabled={uploading}>
-            <View style={styles.profileImageWrapper}>
-  <Image
-    source={profileImage && profileImage !== dummyImageUrl ? { uri: profileImage } : dummyImage}
-    style={[styles.profileImage, { opacity: imageLoading ? 0 : 1 }]}
-    onLoadStart={() => setImageLoading(true)}
-    onLoadEnd={() => setImageLoading(false)}
-    resizeMode="cover"
-  />
+          <View style={styles.profileImageWrapper}>
+            <Image
+              source={isRemoteImage ? { uri: profileImage } : dummyImage}
+              style={[styles.profileImage, { opacity: isRemoteImage && imageLoading ? 0 : 1 }]}
+              onLoadStart={() => isRemoteImage && setImageLoading(true)}
+              onLoadEnd={() => isRemoteImage && setImageLoading(false)}
+              resizeMode="cover"
+            />
+            {isRemoteImage && imageLoading && (
+              <View style={styles.imageLoaderOverlay}>
+                <ActivityIndicator size="large" color="#2563EB" />
+              </View>
+            )}
+          </View>
 
-  {imageLoading && (
-    <View style={styles.imageLoaderOverlay}>
-      <ActivityIndicator size="large" color="#2563EB" />
-    </View>
-  )}
-</View>
-
+          {/* Upload Button */}
+          <TouchableOpacity style={styles.uploadButton} onPress={handleImageUpload} disabled={uploading}>
+            <Text style={styles.uploadText}>{uploading ? 'Uploading...' : 'Upload Image'}</Text>
           </TouchableOpacity>
 
-          {/* Delete Image Button */}
+          {/* Delete Button */}
           {profileImage && !uploading && profileImage !== dummyImageUrl && (
             <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteImage}>
               <Text style={styles.deleteText}>Delete Image</Text>
@@ -219,10 +249,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 15,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 25,
-    borderTopRightRadius: 25,
-    borderTopLeftRadius:25,
-    borderBottomRightRadius: 25,
+    borderRadius: 25,
     backgroundColor: '#1E3A8A',
     shadowColor: '#000',
     shadowOpacity: 0.3,
@@ -236,39 +263,31 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff', textAlign: 'center' },
 
   profileCard: { alignItems: 'center', marginBottom: 30 },
- profileImageWrapper: {
-  width: 130,
-  height: 130,
-  borderRadius: 20,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: '#E5E7EB',
-  shadowColor: '#000',
-  shadowOpacity: 0.3,
-  shadowOffset: { width: 0, height: 6 },
-  shadowRadius: 10,
-  elevation: 8,
-  position: 'relative', // add this
-},
-
-imageLoaderOverlay: {
-  ...StyleSheet.absoluteFillObject,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-  profileImage: { width: 120, height: 120, borderRadius: 20 },
-  cameraIcon: {
-    position: 'absolute',
-    bottom: 0,
-    right: '38%',
-    backgroundColor: '#2563EB',
-    padding: 10,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: '#fff',
+  profileImageWrapper: {
+    width: 130,
+    height: 130,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 10,
+    elevation: 8,
+    position: 'relative',
   },
-  cameraText: { color: '#fff', fontWeight: 'bold' },
+  imageLoaderOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },
+  profileImage: { width: 120, height: 120, borderRadius: 20 },
+
+  uploadButton: {
+    marginTop: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#2563EB',
+  },
+  uploadText: { color: '#fff', fontWeight: '700' },
 
   deleteButton: {
     marginTop: 10,

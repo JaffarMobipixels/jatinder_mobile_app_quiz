@@ -220,13 +220,16 @@ setAudioList(audios.reverse());
                   onReady={() => handleVideoLoad(video.id)}
                 />
               ) : video.url ? (
-                <Video
-                  source={{ uri: video.url }}
-                  style={styles.video}
-                  controls
-                  resizeMode="contain"
-                  onLoad={() => handleVideoLoad(video.id)}
-                />
+               <Video
+  source={{ uri: video.url }}
+  style={styles.video}
+  controls
+  resizeMode="contain"
+  playInBackground={true}
+  playWhenInactive={true}
+  ignoreSilentSwitch="ignore"
+  onLoad={() => handleVideoLoad(video.id)}
+/>
               ) : (
                 <Text style={styles.empty}>Invalid video URL</Text>
               )}

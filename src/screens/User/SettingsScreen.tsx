@@ -65,31 +65,31 @@ const SettingsScreen: React.FC<any> = ({ navigation }) => {
     setPushNotificationsEnabled(prev => !prev);
   };
  
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await auth().signOut();
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Welcome' }],
-              });
-            } catch (error) {
-              Alert.alert('Error', 'Unable to sign out.');
-            }
+const handleSignOut = () => {
+  Alert.alert(
+    'Sign Out',
+    'Are you sure you want to sign out?',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await auth().signOut();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'LoginScreen' }], // Make sure this matches your stack
+            });
+          } catch (error) {
+            Alert.alert('Error', 'Unable to sign out.');
           }
         },
-      ],
-      { cancelable: true }
-    );
-  };
+      },
+    ],
+    { cancelable: true }
+  );
+};
  
   if (loading) {
     return (

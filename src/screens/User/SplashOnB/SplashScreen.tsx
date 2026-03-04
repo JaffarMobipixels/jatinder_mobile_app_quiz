@@ -9,18 +9,9 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-const SplashScreen = ({ navigation }: any) => {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Welcome');
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, [navigation]);
-
+const SplashScreen = () => {
   return (
     <>
-      {/* iOS status bar */}
       <StatusBar
         barStyle="light-content"
         translucent
@@ -37,7 +28,7 @@ const SplashScreen = ({ navigation }: any) => {
               colors={['#4F46E5', '#3B82F6']}
               style={styles.logoBox}
             >
-              <Text style={styles.logoText}>GOQUIZZER</Text>
+              <Text style={styles.logoText}>SIKH VIRSA</Text>
             </LinearGradient>
           </View>
         </SafeAreaView>

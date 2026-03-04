@@ -243,9 +243,7 @@ useEffect(() => {
         timestamp: Date.now(),
       });
     }
-    navigation.replace('CharadesResult', {
-      score: scoreRef.current,
-    });
+   navigation.replace('CharadesResult', { score: scoreRef.current });
   };
 
   useEffect(() => {

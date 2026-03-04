@@ -5,6 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Orientation from 'react-native-orientation-locker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/RootStackParams';
+import { CommonActions } from '@react-navigation/native';
 
 type CharadesHomeProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'CharadesHome'>;
@@ -22,13 +23,14 @@ const CharadesHome: React.FC<CharadesHomeProps> = ({ navigation }) => {
     navigation.replace('CharadesCategory');
   };
 
-  const handleBack = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      navigation.navigate('HomeScreen');
-    }
-  };
+ const handleBack = () => {
+  navigation.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    })
+  );
+};
 
   return (
     <LinearGradient
@@ -55,7 +57,7 @@ const CharadesHome: React.FC<CharadesHomeProps> = ({ navigation }) => {
 
         {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.brandText}>GOQUIZZER</Text>
+          <Text style={styles.brandText}>Sikh Virsa</Text>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>CHARADES EDITION</Text>
           </View>
